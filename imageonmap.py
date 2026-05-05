@@ -91,7 +91,7 @@ geocoder_init = Element("""
 """)
 m.get_root().html.add_child(geocoder_init)
 
-# Add PNG as an overlay
+# Add PNG as an overlay so we can see it on map
 folium.raster_layers.ImageOverlay(
     image=ndvi_png,
     bounds=overlay_bounds,
