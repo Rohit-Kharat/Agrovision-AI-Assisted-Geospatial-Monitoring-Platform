@@ -10,9 +10,9 @@ from sentinelhub import (
 
 # CONFIGURE YOUR SENTINEL HUB ACCESS
 config = SHConfig()
-config.instance_id = "9bd17d6c-c670-4cb7-b185-c061d1d5dfdf"
-config.sh_client_id = "3e212029-2abe-4c12-9705-beea6b7d0fcf"
-config.sh_client_secret = "RWbvlQgD98JTFErK9UJwrcSCaMBzfDNs"
+config.instance_id = "044330f3-4b65-4bd5-8e5e-3bd361662a03"
+config.sh_client_id = "411fec2f-d2a9-48d9-9a6b-3d83f92e553f"
+config.sh_client_secret = "cGUTJUBBsNorhitkI7QzQzbEdTuzfl8I"
 # PATHS
 aoi_path = "aoi.geojson"
 vv_path = "sentinel1/S1_VV.tif"

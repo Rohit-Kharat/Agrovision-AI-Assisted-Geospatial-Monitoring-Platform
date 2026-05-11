@@ -25,12 +25,23 @@ import rasterio
 from rasterio.warp import transform_bounds
 from rasterio.crs import CRS
 import os
+import glob
 
 app = Flask(__name__)
 
-# File paths
-ndvi_tif_path = "ndvi_20250320_215628.tif"  # Update this path
-ndvi_png = "ndvi_output.png"
+def get_latest_ndvi_tif():
+    """Find the most recent NDVI TIFF file."""
+    tif_files = sorted(glob.glob("ndvi_*.tif"), reverse=True)
+    return tif_files[0] if tif_files else None
+
+def get_latest_ndvi_png():
+    """Find the most recent NDVI PNG file."""
+    png_files = sorted(glob.glob("ndvi_*.png"), reverse=True)
+    return png_files[0] if png_files else None
+
+ndvi_tif_path = get_latest_ndvi_tif() or "ndvi_20250320_215628.tif"  # Fallback
+ndvi_png = get_latest_ndvi_png() or "ndvi_output.png"  # Fallback
+smi_overlay = "smi_overlay.png"
 
 def ensure_georeferencing():
     """Check if NDVI TIFF has a CRS; assign one if missing."""
@@ -75,6 +86,28 @@ def ndvi_bounds():
     if bounds:
         return jsonify({"min_lon": bounds[0], "min_lat": bounds[1], "max_lon": bounds[2], "max_lat": bounds[3]})
     return jsonify({"error": "NDVI file is missing georeferencing data."}), 400
+
+@app.route("/smi")
+def get_smi():
+    """Serve the SMI overlay image."""
+    if not os.path.exists(smi_overlay):
+        return "❌ Error: SMI image not found. Please process SAR data first.", 404
+    return send_file(smi_overlay, mimetype="image/png")
+
+@app.route("/smi_bounds")
+def smi_bounds():
+    """Return the SMI bounding box as JSON."""
+    try:
+        import rasterio
+        vv_path = "sentinel1/S1_VV.tif"
+        if os.path.exists(vv_path):
+            with rasterio.open(vv_path) as src:
+                bounds = src.bounds
+                latlon_bounds = transform_bounds(src.crs if src.crs else CRS.from_epsg(4326), "EPSG:4326", *bounds)
+                return jsonify({"min_lon": latlon_bounds[0], "min_lat": latlon_bounds[1], "max_lon": latlon_bounds[2], "max_lat": latlon_bounds[3]})
+        return jsonify({"error": "SAR data not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 if __name__ == "__main__":
     app.run(debug=True)

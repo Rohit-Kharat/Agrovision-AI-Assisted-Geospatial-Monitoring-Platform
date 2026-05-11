@@ -9,9 +9,9 @@ from moveaoi import move_aoi_from_downloads  # ✅ Import the AOI move function
 
 # 1️⃣ Configure Sentinel Hub API
 config = SHConfig()
-config.instance_id = "9bd17d6c-c670-4cb7-b185-c061d1d5dfdf"
-config.sh_client_id = "3e212029-2abe-4c12-9705-beea6b7d0fcf"
-config.sh_client_secret = "RWbvlQgD98JTFErK9UJwrcSCaMBzfDNs"
+config.instance_id = "d4635618-2ded-4bb0-9e0c-558f64872075"
+config.sh_client_id = "9fe82092-6dc3-4ba2-86e6-9b1c6385f68f"
+config.sh_client_secret = "6gnjIgvnVCPgzbw7c97fNk4mhzMyXKcC"
 
 if not config.instance_id or not config.sh_client_id or not config.sh_client_secret:
     print("❌ Error: Sentinel Hub credentials are missing! Set them correctly.")

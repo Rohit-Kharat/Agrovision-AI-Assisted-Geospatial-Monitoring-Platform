@@ -1,4 +1,4 @@
-<!-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,54 +6,152 @@
     <title>Satellite Data Dashboard</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            position: relative;
+        }
+        .navbar h2 { 
+            margin: 0; 
+            font-size: 20px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .navbar-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .navbar-links a:hover { background: rgba(255,255,255,0.1); }
+        .navbar-links .btn-logout {
+            background: rgba(220, 53, 69, 0.8);
+            padding: 8px 18px;
+        }
+        .navbar-links .btn-logout:hover { background: #dc3545; }
+
+        #map { height: calc(100vh - 110px); width: 100%; }
+        
+        #status {
+            padding: 10px 24px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            font-size: 13px;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
-    <h2>Satellite Data Dashboard</h2>
-    <div id="map" style="height: 500px;"></div>
+    <nav class="navbar">
+        <h2>🛰️ Satellite Data Dashboard</h2>
+        <div class="navbar-links">
+            <a href="/auth/dashboard">📊 Dashboard</a>
+            <a href="/auth/subscription">💳 Subscription</a>
+            <a href="/auth/logout" class="btn-logout">Logout</a>
+        </div>
+    </nav>
+    
+    <div id="map"></div>
+    <div id="status">Loading overlays...</div>
 
     <script>
         var map = L.map('map').setView([30, 70], 6);
 
-        // Add OpenStreetMap layer
+        // Add base layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Load NDVI layer
-        var ndviLayer = L.imageOverlay('/ndvi', [[30.0, 70.0], [31.0, 71.0]]);
-        ndviLayer.addTo(map);
-    </script>
-</body>
-</html> -->
+        // Add layer control
+        var layerControl = L.control.layers().addTo(map);
+        var overlays = {};
 
+        // Function to add NDVI overlay
+        function addNDVIOverlay() {
+            fetch('/ndvi_bounds')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.log('NDVI bounds not available:', data.error);
+                        return;
+                    }
+                    var ndviBounds = [[data.min_lat, data.min_lon], [data.max_lat, data.max_lon]];
+                    var ndviLayer = L.imageOverlay('/ndvi', ndviBounds, {
+                        opacity: 0.7,
+                        interactive: true
+                    });
+                    ndviLayer.addTo(map);
+                    layerControl.addOverlay(ndviLayer, "NDVI Layer");
+                    overlays.ndvi = ndviLayer;
+                    updateStatus();
+                })
+                .catch(error => {
+                    console.log('NDVI not available:', error);
+                    updateStatus();
+                });
+        }
 
+        // Function to add SMI overlay
+        function addSMIOverlay() {
+            fetch('/smi_bounds')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.log('SMI bounds not available:', data.error);
+                        return;
+                    }
+                    var smiBounds = [[data.min_lat, data.min_lon], [data.max_lat, data.max_lon]];
+                    var smiLayer = L.imageOverlay('/smi', smiBounds, {
+                        opacity: 0.7,
+                        interactive: true
+                    });
+                    smiLayer.addTo(map);
+                    layerControl.addOverlay(smiLayer, "SMI Layer");
+                    overlays.smi = smiLayer;
+                    updateStatus();
+                })
+                .catch(error => {
+                    console.log('SMI not available:', error);
+                    updateStatus();
+                });
+        }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NDVI Map Overlay</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-</head>
-<body>
-    <h2>NDVI Map Overlay</h2>
-    <div id="map" style="height: 500px;"></div>
+        // Update status display
+        function updateStatus() {
+            var statusText = "Available layers: ";
+            var layers = [];
+            if (overlays.ndvi) layers.push("NDVI");
+            if (overlays.smi) layers.push("SMI");
+            if (layers.length === 0) {
+                statusText = "No satellite data available. Please run the processing pipeline first.";
+            } else {
+                statusText = "Available layers: " + layers.join(", ") + ". Use layer control (top right) to toggle visibility.";
+            }
+            document.getElementById('status').textContent = statusText;
+        }
 
-    <script>
-        var map = L.map('map').setView([30, 70], 6);
-
-        // Add OpenStreetMap layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        // Overlay NDVI image
-        var imageUrl = "/ndvi";
-        var imageBounds = [[30.0, 70.0], [31.0, 71.0]]; // Replace with real bounding box
-
-        L.imageOverlay(imageUrl, imageBounds, { opacity: 0.7 }).addTo(map);
+        // Load overlays on page load
+        addNDVIOverlay();
+        addSMIOverlay();
     </script>
 </body>
 </html>

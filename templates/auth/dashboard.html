@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Satellite Hub</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .dashboard-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border-radius: 10px;
+        }
+        
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea !important;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .nav-links a, .nav-links button {
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nav-links .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .nav-links .btn-primary:hover {
+            background: #764ba2;
+        }
+        
+        .nav-links .logout-btn {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .nav-links .logout-btn:hover {
+            background: #ff5252;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #333;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            border: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        
+        .card-title {
+            font-size: 14px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .card-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .card-description {
+            color: #999;
+            font-size: 13px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-active {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status-trial {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-expired {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .account-section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+        
+        .account-section h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .account-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .info-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .info-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 25px;
+        }
+        
+        .btn-action {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .btn-action-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-action-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-action-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .btn-action-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .progress-bar-custom {
+            height: 25px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            transition: width 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg" style="background: white; border-radius: 0;">
+        <div class="container" style="max-width: 100%; padding: 15px 20px;">
+            <span class="navbar-brand">🛰️ Satellite Hub</span>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}" class="btn-primary" style="color: white; text-decoration: none;">Go to App</a>
+                <a href="{{ url_for('auth.subscription') }}" class="btn-primary" style="color: white; text-decoration: none;">Plans</a>
+                <a href="{{ url_for('auth.logout') }}" class="logout-btn" style="color: white; text-decoration: none;">Logout</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>Welcome, {{ user.username }}! 👋</h1>
+            <p>Manage your account and subscription</p>
+        </div>
+        
+        <!-- Status Cards -->
+        <div class="cards-grid">
+            <!-- Subscription Status -->
+            <div class="card">
+                <div class="card-icon">💳</div>
+                <div class="card-title">Subscription Status</div>
+                <div>
+                    <span class="status-badge {% if user.can_access() %}status-active{% elif user.subscription_type == 'trial' %}status-trial{% else %}status-expired{% endif %}">
+                        {% if user.subscription_type == 'trial' %}Trial{% elif user.subscription_type == 'basic' %}Basic{% elif user.subscription_type == 'premium' %}Premium{% else %}Free{% endif %}
+                    </span>
+                </div>
+                <p class="card-description" style="margin-top: 15px;">{{ user.subscription_type | capitalize }} subscription</p>
+            </div>
+            
+            <!-- Days Remaining -->
+            <div class="card">
+                <div class="card-icon">⏰</div>
+                <div class="card-title">Days Remaining</div>
+                <div class="card-value">{{ user.days_remaining() }}</div>
+                {% if user.days_remaining() <= 3 and user.days_remaining() > 0 %}
+                <p class="card-description">Upgrade soon to avoid interruption</p>
+                {% elif user.days_remaining() == 0 %}
+                <p class="card-description" style="color: #c62828;">Your access has expired</p>
+                {% else %}
+                <p class="card-description">Time until upgrade required</p>
+                {% endif %}
+            </div>
+            
+            <!-- Account Created -->
+            <div class="card">
+                <div class="card-icon">📅</div>
+                <div class="card-title">Member Since</div>
+                <div class="card-value" style="font-size: 18px;">{{ user.signup_date.strftime('%B %d, %Y') }}</div>
+                <p class="card-description">Account creation date</p>
+            </div>
+        </div>
+        
+        <!-- Progress Bar (if on trial) -->
+        {% if user.subscription_type == 'trial' or not user.trial_used %}
+        <div class="account-section" style="background: linear-gradient(135deg, #fff3cd 0%, #ffe082 100%); border: 2px solid #fbc02d;">
+            <h2 style="color: #f57f17; border-color: #fbc02d;">Free Trial Progress</h2>
+            <div class="progress-bar-custom" style="margin-bottom: 15px;">
+                <div class="progress-fill" style="width: {{ (user.days_remaining() / user.trial_days * 100) | int }}%;">
+                    {{ (user.days_remaining() / user.trial_days * 100) | int }}% Complete
+                </div>
+            </div>
+            <p style="color: #f57f17; margin: 0;">You have <strong>{{ user.days_remaining() }}</strong> days of your free trial remaining. After that, choose a subscription plan to continue using the satellite data analysis features.</p>
+        </div>
+        {% endif %}
+        
+        <!-- Account Information -->
+        <div class="account-section">
+            <h2>Account Information</h2>
+            <div class="account-info">
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">{{ user.email }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Username</div>
+                    <div class="info-value">{{ user.username }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Account Status</div>
+                    <div class="info-value">
+                        <span class="status-badge {% if user.is_active %}status-active{% else %}status-expired{% endif %}">
+                            {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Subscription Details -->
+        <div class="account-section">
+            <h2>Subscription Details</h2>
+            <div class="account-info">
+                {% if user.subscription_type != 'trial' and not user.trial_used %}
+                <div class="info-item">
+                    <div class="info-label">Subscription Type</div>
+                    <div class="info-value">{{ user.subscription_type | capitalize }}</div>
+                </div>
+                {% if user.subscription_start %}
+                <div class="info-item">
+                    <div class="info-label">Started On</div>
+                    <div class="info-value">{{ user.subscription_start.strftime('%B %d, %Y') }}</div>
+                </div>
+                {% endif %}
+                {% if user.subscription_end %}
+                <div class="info-item">
+                    <div class="info-label">Expires On</div>
+                    <div class="info-value">{{ user.subscription_end.strftime('%B %d, %Y') }}</div>
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="info-item">
+                    <div class="info-label">Current Plan</div>
+                    <div class="info-value">Free Trial</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Trial Days</div>
+                    <div class="info-value">{{ user.trial_days }} days</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="account-section">
+            <div class="action-buttons">
+                <a href="{{ url_for('index') }}" class="btn-action btn-action-primary">🚀 Go to Satellite App</a>
+                <a href="{{ url_for('auth.subscription') }}" class="btn-action btn-action-primary">📊 View Plans</a>
+                <a href="{{ url_for('auth.logout') }}" class="btn-action btn-action-secondary">Logout</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

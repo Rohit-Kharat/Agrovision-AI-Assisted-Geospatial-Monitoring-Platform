@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Plans - Satellite Hub</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .subscription-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            color: #333;
+        }
+        
+        .header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .trial-info {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .trial-info h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        
+        .trial-info p {
+            color: #558b2f;
+            margin: 0;
+            font-size: 16px;
+        }
+        
+        .trial-days {
+            font-weight: 700;
+            font-size: 24px;
+        }
+        
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            height: 100%;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .card-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-transform: capitalize;
+        }
+        
+        .price {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .price-period {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .card-body {
+            padding: 30px 20px;
+        }
+        
+        .features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+        
+        .features li {
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .features li:before {
+            content: "✓ ";
+            color: #4caf50;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        
+        .features li:last-child {
+            border-bottom: none;
+        }
+        
+        .btn-subscribe {
+            width: 100%;
+            padding: 12px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-subscribe-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-subscribe-primary:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-subscribe-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .btn-subscribe-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .free-badge {
+            display: inline-block;
+            background: #fff3cd;
+            color: #856404;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+        
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea !important;
+        }
+        
+        .logout-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .logout-btn:hover {
+            background: #ff5252;
+        }
+        
+        .current-plan {
+            color: #2e7d32;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <span class="navbar-brand">🛰️ Satellite Hub</span>
+            <div class="d-flex gap-3">
+                <a href="{{ url_for('auth.dashboard') }}" class="btn btn-sm" style="background: #667eea; color: white;">Dashboard</a>
+                <a href="{{ url_for('auth.logout') }}" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="subscription-container">
+        <div class="header">
+            <h1>Choose Your Plan</h1>
+            <p>Upgrade your satellite data analysis capabilities</p>
+        </div>
+        
+        {% if user.subscription_type == 'trial' or not user.trial_used %}
+        <div class="trial-info">
+            <h3>🎉 Your Free Trial</h3>
+            <p><span class="trial-days">{{ days_remaining }}</span> days remaining</p>
+            <p style="font-size: 14px; margin-top: 10px;">Unlock unlimited features by subscribing below</p>
+        </div>
+        {% endif %}
+        
+        <div class="pricing-cards">
+            <!-- Free Plan (Current) -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Free Trial</h2>
+                    <div class="price">Free</div>
+                    <div class="price-period">10 days</div>
+                </div>
+                <div class="card-body">
+                    {% if user.subscription_type == 'trial' and not user.trial_used %}
+                    <div class="current-plan">✓ Current Plan</div>
+                    {% endif %}
+                    <ul class="features">
+                        <li>Basic NDVI analysis</li>
+                        <li>Single AOI area</li>
+                        <li>10x daily requests</li>
+                        <li>Standard resolution</li>
+                        <li>Email support</li>
+                    </ul>
+                    <button class="btn-subscribe btn-subscribe-secondary" disabled>Currently Active</button>
+                </div>
+            </div>
+            
+            <!-- Basic Plan -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Basic</h2>
+                    <div class="price">$9.99</div>
+                    <div class="price-period">/month</div>
+                </div>
+                <div class="card-body">
+                    {% if user.subscription_type == 'basic' %}
+                    <div class="current-plan">✓ Current Plan</div>
+                    {% endif %}
+                    <ul class="features">
+                        <li>Advanced NDVI & SMI analysis</li>
+                        <li>Up to 3 AOI areas</li>
+                        <li>100x daily requests</li>
+                        <li>High resolution imagery</li>
+                        <li>Priority email support</li>
+                        <li>Monthly reports</li>
+                    </ul>
+                    {% if user.subscription_type != 'basic' %}
+                    <form method="POST" action="{{ url_for('auth.subscribe', sub_id=1) }}" style="margin-top: auto;">
+                        <button type="submit" class="btn-subscribe btn-subscribe-primary">Subscribe Now</button>
+                    </form>
+                    {% else %}
+                    <button class="btn-subscribe btn-subscribe-secondary" disabled>Current Plan</button>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Premium Plan -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Premium</h2>
+                    <div class="price">$29.99</div>
+                    <div class="price-period">/month</div>
+                </div>
+                <div class="card-body">
+                    {% if user.subscription_type == 'premium' %}
+                    <div class="current-plan">✓ Current Plan</div>
+                    {% endif %}
+                    <ul class="features">
+                        <li>Full analysis suite</li>
+                        <li>Unlimited AOI areas</li>
+                        <li>Unlimited daily requests</li>
+                        <li>Maximum resolution imagery</li>
+                        <li>24/7 dedicated support</li>
+                        <li>Advanced API access</li>
+                        <li>Custom reports & exports</li>
+                        <li>ML-powered predictions</li>
+                    </ul>
+                    {% if user.subscription_type != 'premium' %}
+                    <form method="POST" action="{{ url_for('auth.subscribe', sub_id=2) }}" style="margin-top: auto;">
+                        <button type="submit" class="btn-subscribe btn-subscribe-primary">Subscribe Now</button>
+                    </form>
+                    {% else %}
+                    <button class="btn-subscribe btn-subscribe-secondary" disabled>Current Plan</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

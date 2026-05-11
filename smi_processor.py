@@ -2,6 +2,7 @@ import numpy as np
 import rasterio
 import matplotlib.pyplot as plt
 import os
+import re
 
 def calculate_smi(vv_path, vh_path, output_path):
     with rasterio.open(vv_path) as vv_src, rasterio.open(vh_path) as vh_src:
@@ -23,63 +24,71 @@ def calculate_smi(vv_path, vh_path, output_path):
     inject_smi_into_map(output_path, bounds)
 
 def inject_smi_into_map(png_path, bounds, map_path="interactive_map.html"):
+    """Inject SMI overlay into the Folium interactive map."""
     print(f"🗺️ Injecting SMI overlay into {map_path}...")
+    
     if not os.path.exists(map_path):
-        print(f"⚠️ Warning: {map_path} not found.")
+        print(f"⚠️ Warning: {map_path} not found. Skipping injection.")
         return
 
     overlay_bounds = [[bounds.bottom, bounds.left], [bounds.top, bounds.right]]
     
+    # Convert to relative path for HTML
+    png_rel_path = os.path.relpath(png_path).replace("\\", "/")
+    
     with open(map_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    
-    import re
-    map_id_match = re.search(r'var (map_[a-z0-9]+) = L.map', content)
-    layer_control_match = re.search(r'let (layer_control_[a-z0-9]+) = L.control.layers', content)
-    
-    if not map_id_match:
-        print("❌ Error: Could not find map ID in HTML.")
-        return
-    map_id = map_id_match.group(1)
-    lc_id = layer_control_match.group(1) if layer_control_match else None
-
+    # Create SMI layer injection script
     smi_script = f"""
     <script>
-        document.addEventListener("DOMContentLoaded", function() {{
-            var checkMap = setInterval(function() {{
-                if (window['{map_id}']) {{
-                    clearInterval(checkMap);
-                    var theMap = window['{map_id}'];
-                    var smiLayer = L.imageOverlay(
-                        '{png_path}',
-                        {overlay_bounds},
-                        {{ opacity: 0.7, interactive: true }}
-                    );
-                    smiLayer.addTo(theMap);
-                    
-                    // Add to layer control if it exists
-                    if (window['{lc_id}']) {{
-                        window['{lc_id}'].addOverlay(smiLayer, "SMI Layer");
-                    }} else if (typeof {lc_id} !== 'undefined') {{
-                        {lc_id}.addOverlay(smiLayer, "SMI Layer");
-                    }}
+        // Add SMI Layer to Folium map
+        var smiimageBounds = {overlay_bounds};
+        var smiImage = L.imageOverlay('{png_rel_path}', smiimageBounds, {{opacity: 0.6, interactive: false}});
+        
+        // Function to add SMI layer
+        function addSMILayer() {{
+            // Find the Folium map (variable names have random suffixes)
+            var map = null;
+            for (var key in window) {{
+                if (key.startsWith('map_') && window[key] && typeof window[key].addLayer === 'function') {{
+                    map = window[key];
+                    break;
                 }}
-            }}, 100);
-        }});
+            }}
+            
+            if (map) {{
+                // Add SMI layer directly to the map
+                smiImage.addTo(map);
+                console.log('SMI layer added to map');
+            }} else {{
+                console.log('Map not found');
+            }}
+        }}
+        
+        // Wait for page to load
+        if (document.readyState === 'loading') {{
+            document.addEventListener('DOMContentLoaded', addSMILayer);
+        }} else {{
+            addSMILayer();
+        }}
     </script>
     """
 
+    # Check if SMI layer already exists (avoid duplicates)
+    if "SMI Layer" in content or "smiimageBounds" in content:
+        print("⚠️ SMI layer already injected. Removing old injection to update...")
+        # Remove old SMI script
+        content = re.sub(r'<script>[\s\S]*?SMI Layer[\s\S]*?</script>', '', content, flags=re.DOTALL)
 
+    # Inject before closing body tag
     if "</body>" in content:
-        # Avoid duplicate SMI layers
-        if f"'{png_path}'" in content:
-             content = re.sub(rf'<script>.*?{re.escape(png_path)}.*?</script>', '', content, flags=re.DOTALL)
-
         new_content = content.replace("</body>", smi_script + "\n</body>")
         with open(map_path, "w", encoding="utf-8") as f:
             f.write(new_content)
-        print(f"✅ SMI Layer injected into {map_path}")
+        print(f"✅ SMI Layer successfully injected into {map_path}")
+    else:
+        print("⚠️ Could not find </body> tag in HTML.")
 
 # 🔽 This block runs when you execute the file directly
 if __name__ == "__main__":
@@ -93,4 +102,3 @@ if __name__ == "__main__":
         os.makedirs(output_dir, exist_ok=True)
 
     calculate_smi(vv_path, vh_path, output_path)
-
