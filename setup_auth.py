@@ -15,13 +15,13 @@ def print_header(text):
     print(f"{'='*60}\n")
 
 def run_command(cmd, description):
-    print(f"📦 {description}...")
+    print(f"Installing {description}...")
     try:
         result = subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
-        print(f"✅ {description} - Success!")
+        print(f"Success: {description}")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ {description} - Failed!")
+        print(f"Failed: {description}")
         print(f"Error: {e.stderr}")
         return False
 
@@ -30,7 +30,7 @@ def create_env_file():
     
     env_path = Path(".env")
     if env_path.exists():
-        print("⚠️  .env file already exists. Skipping...")
+        print("Note: .env file already exists. Skipping...")
         return
     
     secret_key = os.urandom(16).hex()
@@ -58,13 +58,13 @@ DATABASE_URL=sqlite:///satellite.db
 # MAIL_USE_TLS=True
 # MAIL_USERNAME=your_email
 # MAIL_PASSWORD=your_password
-"""
+# """
     
     with open(env_path, 'w') as f:
         f.write(env_content)
     
-    print(f"✅ Created .env file with secret key")
-    print(f"📝 SECRET_KEY: {secret_key}")
+    print(f"Created .env file with secret key")
+    print(f"SECRET_KEY: {secret_key}")
 
 def check_directories():
     print_header("Creating Necessary Directories")
@@ -77,7 +77,7 @@ def check_directories():
     
     for directory in directories:
         Path(directory).mkdir(parents=True, exist_ok=True)
-        print(f"✅ {directory}/ exists")
+        print(f"Directory {directory}/ exists")
 
 def initialize_database():
     print_header("Initializing Database")
@@ -91,7 +91,7 @@ def initialize_database():
             
             # Check if subscriptions already exist
             if Subscription.query.count() == 0:
-                print("📝 Creating default subscription plans...")
+                print("Creating default subscription plans...")
                 
                 basic = Subscription(
                     name='basic',
@@ -109,17 +109,17 @@ def initialize_database():
                 db.session.add(premium)
                 db.session.commit()
                 
-                print("✅ Basic Plan: $9.99/month")
-                print("✅ Premium Plan: $29.99/month")
+                print("Basic Plan: $9.99/month")
+                print("Premium Plan: $29.99/month")
             else:
-                print("ℹ️  Subscription plans already exist")
+                print("Subscription plans already exist")
             
-            print("✅ Database initialized successfully")
-            print(f"📁 Database file: satellite.db")
+            print("Database initialized successfully")
+            print(f"Database file: satellite.db")
         
         return True
     except Exception as e:
-        print(f"❌ Database initialization failed: {e}")
+        print(f"Database initialization failed: {e}")
         return False
 
 def create_test_user():
@@ -142,7 +142,7 @@ def create_test_user():
         with app.app_context():
             # Check if user exists
             if User.query.filter_by(email=email).first():
-                print(f"❌ User with email {email} already exists")
+                print(f"User with email {email} already exists")
                 return
             
             user = User(
@@ -155,25 +155,25 @@ def create_test_user():
             db.session.add(user)
             db.session.commit()
             
-            print(f"\n✅ Test user created successfully!")
-            print(f"📧 Email: {email}")
-            print(f"👤 Username: {username}")
-            print(f"🎁 Trial Days: 10")
-            print(f"🔐 Login at: http://localhost:5000/auth/login")
+            print(f"\nTest user created successfully!")
+            print(f"Email: {email}")
+            print(f"Username: {username}")
+            print(f"Trial Days: 10")
+            print(f"Login at: http://localhost:5000/auth/login")
     
     except Exception as e:
-        print(f"❌ Failed to create test user: {e}")
+        print(f"Failed to create test user: {e}")
 
 def main():
-    print_header("🛰️  Satellite Hub - Authentication System Setup")
+    print_header("Satellite Hub - Authentication System Setup")
     
     print("""
 This script will set up your authentication system with:
-  ✓ User database (SQLite)
-  ✓ Email/password authentication
-  ✓ 10-day free trial tracking
-  ✓ Subscription management
-  ✓ Role-based access control
+  - User database (SQLite)
+  - Email/password authentication
+  - 10-day free trial tracking
+  - Subscription management
+  - Role-based access control
     """)
     
     # Step 1: Check directories
@@ -185,22 +185,22 @@ This script will set up your authentication system with:
     # Step 3: Install requirements
     print_header("Installing Dependencies")
     if run_command("pip install -r requirements_auth.txt", "Installing authentication dependencies"):
-        print("✅ All dependencies installed")
+        print("All dependencies installed")
     else:
-        print("⚠️  Some dependencies failed to install")
+        print("Some dependencies failed to install")
         sys.exit(1)
     
     # Step 4: Initialize database
     if initialize_database():
-        print("✅ Database setup complete")
+        print("Database setup complete")
     else:
-        print("⚠️  Database setup encountered issues")
+        print("Database setup encountered issues")
     
     # Step 5: Create test user
     create_test_user()
     
     # Final instructions
-    print_header("✅ Setup Complete!")
+    print_header("Setup Complete!")
     
     print("""
 Next Steps:
@@ -217,32 +217,32 @@ Next Steps:
   4. Dashboard shows subscription status and countdown
 
 Important:
-  📁 Database: satellite.db (SQLite)
-  🔐 Secret Key: Stored in .env file
-  📝 Configuration: Update .env for production
+  Database: satellite.db (SQLite)
+  Secret Key: Stored in .env file
+  Configuration: Update .env for production
   
 Documentation:
-  📖 Read AUTH_SETUP.md for detailed information
-  📋 Check models.py for database schema
-  🔌 See auth.py for authentication logic
+  Read AUTH_SETUP.md for detailed information
+  Check models.py for database schema
+  See auth.py for authentication logic
 
 Production Checklist:
-  ☐ Generate strong SECRET_KEY
-  ☐ Set FLASK_ENV=production
-  ☐ Use PostgreSQL instead of SQLite
-  ☐ Enable HTTPS/SSL
-  ☐ Set up email notifications
-  ☐ Integrate payment gateway (Stripe/PayPal)
-  ☐ Add rate limiting
-  ☐ Set up error logging
+  - Generate strong SECRET_KEY
+  - Set FLASK_ENV=production
+  - Use PostgreSQL instead of SQLite
+  - Enable HTTPS/SSL
+  - Set up email notifications
+  - Integrate payment gateway (Stripe/PayPal)
+  - Add rate limiting
+  - Set up error logging
     """)
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n❌ Setup cancelled by user")
+        print("\n\nSetup cancelled by user")
         sys.exit(0)
     except Exception as e:
-        print(f"\n❌ Setup failed with error: {e}")
+        print(f"\nSetup failed with error: {e}")
         sys.exit(1)

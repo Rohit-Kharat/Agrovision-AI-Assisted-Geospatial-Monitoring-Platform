@@ -9,7 +9,7 @@ from branca.element import Element
 tif_files = sorted(glob.glob("ndvi_*.tif"), reverse=True)
 
 if not tif_files:
-    raise FileNotFoundError("❌ No NDVI .tif files found in the directory.")
+    raise FileNotFoundError("No NDVI .tif files found in the directory.")
 
 # Use the latest file based on filename
 ndvi_tif = tif_files[0]
@@ -27,10 +27,10 @@ ndvi_normalized = ((ndvi_data - np.nanmin(ndvi_data)) /
 
 # Save as PNG in the correct project directory
 plt.imsave(ndvi_png, ndvi_normalized, cmap="RdYlGn")
-print(f"✅ NDVI Image converted to PNG: {ndvi_png}")
+print(f"NDVI Image converted to PNG: {ndvi_png}")
 
 # --- Update Existing Interactive Map with PNG Overlay ---
-print("🗺️ Injecting NDVI overlay into interactive_map.html...")
+print("Injecting NDVI overlay into interactive_map.html...")
 
 # Folium expects [[south, west], [north, east]]
 overlay_bounds = [[bounds.bottom, bounds.left], [bounds.top, bounds.right]]
@@ -107,8 +107,5 @@ folium.LayerControl().add_to(m)
 map_filename = "interactive_map.html"
 m.save(map_filename)
 
-print(f"✅ interactive_map.html updated with NDVI overlay and fit to bounds.")
-
+print(f"interactive_map.html updated with NDVI overlay and fit to bounds.")
 print(f"Bounding Box: {bounds}")
-
-

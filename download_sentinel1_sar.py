@@ -10,9 +10,10 @@ from sentinelhub import (
 
 # CONFIGURE YOUR SENTINEL HUB ACCESS
 config = SHConfig()
-config.instance_id = "044330f3-4b65-4bd5-8e5e-3bd361662a03"
-config.sh_client_id = "411fec2f-d2a9-48d9-9a6b-3d83f92e553f"
-config.sh_client_secret = "cGUTJUBBsNorhitkI7QzQzbEdTuzfl8I"
+config.instance_id = "d4635618-2ded-4bb0-9e0c-558f64872075"
+config.sh_client_id = "9fe82092-6dc3-4ba2-86e6-9b1c6385f68f"
+config.sh_client_secret = "6gnjIgvnVCPgzbw7c97fNk4mhzMyXKcC"
+
 # PATHS
 aoi_path = "aoi.geojson"
 vv_path = "sentinel1/S1_VV.tif"
@@ -23,7 +24,8 @@ os.makedirs("sentinel1", exist_ok=True)
 aoi = gpd.read_file(aoi_path)
 bounds = aoi.total_bounds  # minx, miny, maxx, maxy
 bbox = BBox(bbox=tuple(bounds), crs=CRS.WGS84)
-resolution = 10
+# Requested at 5m resolution for higher density (Sentinel Hub handles upsampling)
+resolution = 5
 width, height = bbox_to_dimensions(bbox, resolution=resolution)
 
 # DATE RANGE
@@ -76,7 +78,7 @@ def download_sar_band(polarization, out_path):
                        crs=crs, transform=transform) as dst:
         dst.write(data, 1)
 
-    print(f"✅ Saved {polarization} to {out_path}")
+    print(f"Saved {polarization} to {out_path}")
 
 
 
@@ -84,4 +86,4 @@ def download_sar_band(polarization, out_path):
 download_sar_band("VV", vv_path)
 download_sar_band("VH", vh_path)
 
-print("✅ Sentinel-1 VV/VH bands downloaded successfully.")
+print("Sentinel-1 VV/VH bands downloaded successfully.")

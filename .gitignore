@@ -71,3 +71,16 @@ htmlcov/
 # Backup files
 *.bak
 *.backup
+
+# --- Satellite Monitoring Outputs ---
+aoi.geojson
+aoi*.geojson
+ndvi_*.tif
+ndvi_*.png
+smi_overlay.png
+sentinel1/
+health_results.json
+latest_ndvi_model_plot.png
+latest_ndvi_plot.png
+status.js
+interactive_map.html

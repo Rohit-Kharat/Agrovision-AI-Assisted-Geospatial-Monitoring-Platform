@@ -18,17 +18,17 @@ def calculate_smi(vv_path, vh_path, output_path):
 
     # Save as PNG
     plt.imsave(output_path, smi, cmap="Blues")
-    print(f"✅ Soil Moisture Index saved to {output_path}")
+    print(f"Soil Moisture Index saved to {output_path}")
 
     # Inject into interactive_map.html
     inject_smi_into_map(output_path, bounds)
 
 def inject_smi_into_map(png_path, bounds, map_path="interactive_map.html"):
     """Inject SMI overlay into the Folium interactive map."""
-    print(f"🗺️ Injecting SMI overlay into {map_path}...")
+    print(f"Injecting SMI overlay into {map_path}...")
     
     if not os.path.exists(map_path):
-        print(f"⚠️ Warning: {map_path} not found. Skipping injection.")
+        print(f"Warning: {map_path} not found. Skipping injection.")
         return
 
     overlay_bounds = [[bounds.bottom, bounds.left], [bounds.top, bounds.right]]
@@ -77,7 +77,7 @@ def inject_smi_into_map(png_path, bounds, map_path="interactive_map.html"):
 
     # Check if SMI layer already exists (avoid duplicates)
     if "SMI Layer" in content or "smiimageBounds" in content:
-        print("⚠️ SMI layer already injected. Removing old injection to update...")
+        print("Warning: SMI layer already injected. Removing old injection to update...")
         # Remove old SMI script
         content = re.sub(r'<script>[\s\S]*?SMI Layer[\s\S]*?</script>', '', content, flags=re.DOTALL)
 
@@ -86,9 +86,9 @@ def inject_smi_into_map(png_path, bounds, map_path="interactive_map.html"):
         new_content = content.replace("</body>", smi_script + "\n</body>")
         with open(map_path, "w", encoding="utf-8") as f:
             f.write(new_content)
-        print(f"✅ SMI Layer successfully injected into {map_path}")
+        print(f"SMI Layer successfully injected into {map_path}")
     else:
-        print("⚠️ Could not find </body> tag in HTML.")
+        print("Warning: Could not find </body> tag in HTML.")
 
 # 🔽 This block runs when you execute the file directly
 if __name__ == "__main__":

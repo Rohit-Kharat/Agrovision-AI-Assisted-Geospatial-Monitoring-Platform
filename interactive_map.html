@@ -3,6 +3,8 @@
 <head>
     
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     
         <script>
             L_NO_TOUCH = false;
@@ -11,15 +13,11 @@
     
     <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
     <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
-    <!-- Leaflet CSS and JS must load FIRST -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
-    <!-- Geocoder CSS and JS must load AFTER Leaflet -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
@@ -29,7 +27,7 @@
             <meta name="viewport" content="width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
             <style>
-                #map_5643e69ab1ab5cdab03ed91781a9a6fd {
+                #map_3454f24b07667d2afe263f89dcb1b6ba {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -55,158 +53,81 @@
 </head>
 <body>
     
-            <div class="folium-map" id="map_5643e69ab1ab5cdab03ed91781a9a6fd" ></div>
+    
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var mapEl = document.querySelector('.folium-map');
+        var mapId = mapEl.id;
+        var checkMap = setInterval(function() {
+            if (window[mapId] || window['map_' + mapId]) {
+                clearInterval(checkMap);
+                var theMap = window[mapId] || window['map_' + mapId];
+                L.Control.geocoder({
+                    defaultMarkGeocode: false,
+                    position: 'topright',
+                    placeholder: 'Search city or place...',
+                    collapsed: false,
+                }).on('markgeocode', function(e) {
+                    var bbox = e.geocode.bbox;
+                    theMap.fitBounds(bbox);
+                    L.marker(e.geocode.center).addTo(theMap).bindPopup(e.geocode.name).openPopup();
+                }).addTo(theMap);
+            }
+        }, 100);
+    });
+</script>
+    
+            <div class="folium-map" id="map_3454f24b07667d2afe263f89dcb1b6ba" ></div>
         
 
-    <div id="health-sidebar" style="
-        position: fixed; 
-        top: 10px; 
-        left: 50px; 
-        width: 380px; 
-        height: 85%; 
-        background: rgba(255, 255, 255, 0.95); 
-        z-index: 1000; 
-        overflow-y: auto; 
-        padding: 15px; 
-        box-shadow: 0 0 15px rgba(0,0,0,0.3);
-        border-radius: 8px;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    ">
-        <h2 style="margin-top: 0; color: #2e7d32;">🌿 Crop Health Report</h2>
+    <script>
+        // Add SMI Layer to Folium map
+        var smiimageBounds = [[18.656366, 73.92102], [18.657708, 73.923031]];
+        var smiImage = L.imageOverlay('smi_overlay.png', smiimageBounds, {opacity: 0.6, interactive: false});
         
-        <div style="margin-bottom: 20px; text-align: center;">
-            <h4 style="margin-bottom: 5px;">NDVI Analysis Plot</h4>
-            <img src="ndvi_plot.png" alt="NDVI Plot" style="width: 100%; border-radius: 4px; border: 1px solid #ccc;">
-        </div>
-
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-            <thead>
-                <tr style="background: #2e7d32; color: white;">
-                    <th style="border: 1px solid #ccc; padding: 6px;">Zone</th>
-                    <th style="border: 1px solid #ccc; padding: 6px;">NDVI</th>
-                    <th style="border: 1px solid #ccc; padding: 6px;">Health</th>
-                    <th style="border: 1px solid #ccc; padding: 6px;">Suggestions</th>
-                </tr>
-            </thead>
-            <tbody>
-                
-        <tr class="Good">
-            <td>(0,0)</td>
-            <td>0.762</td>
-            <td>Good</td>
-            <td><ul><li>✅ Maintain current practices.</li><li>🌾 Apply precision fertilizer.</li><li>📅 Plan harvest based on NDVI trends.</li></ul></td>
-        </tr>
+        // Function to add SMI layer
+        function addSMILayer() {
+            // Find the Folium map (variable names have random suffixes)
+            var map = null;
+            for (var key in window) {
+                if (key.startsWith('map_') && window[key] && typeof window[key].addLayer === 'function') {
+                    map = window[key];
+                    break;
+                }
+            }
+            
+            if (map) {
+                // Add SMI layer directly to the map
+                smiImage.addTo(map);
+                console.log('SMI layer added to map');
+            } else {
+                console.log('Map not found');
+            }
+        }
         
-        <tr class="Good">
-            <td>(10,0)</td>
-            <td>0.749</td>
-            <td>Good</td>
-            <td><ul><li>✅ Maintain current practices.</li><li>🌾 Apply precision fertilizer.</li><li>📅 Plan harvest based on NDVI trends.</li></ul></td>
-        </tr>
-        
-        <tr class="Good">
-            <td>(20,0)</td>
-            <td>0.787</td>
-            <td>Good</td>
-            <td><ul><li>✅ Maintain current practices.</li><li>🌾 Apply precision fertilizer.</li><li>📅 Plan harvest based on NDVI trends.</li></ul></td>
-        </tr>
-        
-        <tr class="Good">
-            <td>(30,0)</td>
-            <td>0.816</td>
-            <td>Good</td>
-            <td><ul><li>✅ Maintain current practices.</li><li>🌾 Apply precision fertilizer.</li><li>📅 Plan harvest based on NDVI trends.</li></ul></td>
-        </tr>
-        
-        <tr class="Good">
-            <td>(0,10)</td>
-            <td>0.869</td>
-            <td>Good</td>
-            <td><ul><li>✅ Maintain current practices.</li><li>🌾 Apply precision fertilizer.</li><li>📅 Plan harvest based on NDVI trends.</li></ul></td>
-        </tr>
-        
-        <tr class="Good">
-            <td>(10,10)</td>
-            <td>0.816</td>
-            <td>Good</td>
-            <td><ul><li>✅ Maintain current practices.</li><li>🌾 Apply precision fertilizer.</li><li>📅 Plan harvest based on NDVI trends.</li></ul></td>
-        </tr>
-        
-        <tr class="Good">
-            <td>(20,10)</td>
-            <td>0.615</td>
-            <td>Good</td>
-            <td><ul><li>✅ Maintain current practices.</li><li>🌾 Apply precision fertilizer.</li><li>📅 Plan harvest based on NDVI trends.</li></ul></td>
-        </tr>
-        
-        <tr class="Good">
-            <td>(30,10)</td>
-            <td>0.651</td>
-            <td>Good</td>
-            <td><ul><li>✅ Maintain current practices.</li><li>🌾 Apply precision fertilizer.</li><li>📅 Plan harvest based on NDVI trends.</li></ul></td>
-        </tr>
-        
-        <tr class="Moderate">
-            <td>(0,20)</td>
-            <td>0.407</td>
-            <td>Moderate</td>
-            <td><ul><li>💧 Slightly increase watering.</li><li>🌿 Apply foliar nutrient spray.</li><li>👀 Monitor environmental stress closely.</li></ul></td>
-        </tr>
-        
-        <tr class="Moderate">
-            <td>(10,20)</td>
-            <td>0.457</td>
-            <td>Moderate</td>
-            <td><ul><li>💧 Slightly increase watering.</li><li>🌿 Apply foliar nutrient spray.</li><li>👀 Monitor environmental stress closely.</li></ul></td>
-        </tr>
-        
-        <tr class="Good">
-            <td>(20,20)</td>
-            <td>0.523</td>
-            <td>Good</td>
-            <td><ul><li>✅ Maintain current practices.</li><li>🌾 Apply precision fertilizer.</li><li>📅 Plan harvest based on NDVI trends.</li></ul></td>
-        </tr>
-        
-        <tr class="Good">
-            <td>(30,20)</td>
-            <td>0.538</td>
-            <td>Good</td>
-            <td><ul><li>✅ Maintain current practices.</li><li>🌾 Apply precision fertilizer.</li><li>📅 Plan harvest based on NDVI trends.</li></ul></td>
-        </tr>
-        
-            </tbody>
-        </table>
-        <style>
-            .Bad { background-color: #ffd6d6; color: #b71c1c; }
-            .Moderate { background-color: #fff5cc; color: #f57f17; }
-            .Good { background-color: #d6ffd6; color: #1b5e20; }
-            #health-sidebar::-webkit-scrollbar { width: 8px; }
-            #health-sidebar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-        </style>
-        <button onclick="document.getElementById('health-sidebar').style.display='none'" style="
-            margin-top: 15px;
-            width: 100%;
-            padding: 10px;
-            background: #d32f2f;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        ">Close Dashboard</button>
-    </div>
-
+        // Wait for page to load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', addSMILayer);
+        } else {
+            addSMILayer();
+        }
+    </script>
+    
+</body>
 <script>
     
     
-            var map_5643e69ab1ab5cdab03ed91781a9a6fd = L.map(
-                "map_5643e69ab1ab5cdab03ed91781a9a6fd",
+            var map_3454f24b07667d2afe263f89dcb1b6ba = L.map(
+                "map_3454f24b07667d2afe263f89dcb1b6ba",
                 {
-                    center: [18.506059, 74.51812849999999],
+                    center: [18.657037, 73.92202549999999],
                     crs: L.CRS.EPSG3857,
-                    zoom: 14,
-                    zoomControl: true,
-                    preferCanvas: false
+                    ...{
+  "zoom": 14,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
                 }
             );
 
@@ -214,7 +135,7 @@
 
         
     
-            var tile_layer_5288d51eff0b4f4ada203bfff685a566 = L.tileLayer(
+            var tile_layer_b5c07bed9332f88c2445a5b254c395d6 = L.tileLayer(
                 "https://mt1.google.com/vt/lyrs=y\u0026x={x}\u0026y={y}\u0026z={z}",
                 {
   "minZoom": 0,
@@ -231,18 +152,48 @@
             );
         
     
-            tile_layer_5288d51eff0b4f4ada203bfff685a566.addTo(map_5643e69ab1ab5cdab03ed91781a9a6fd);
+            tile_layer_b5c07bed9332f88c2445a5b254c395d6.addTo(map_3454f24b07667d2afe263f89dcb1b6ba);
         
     
-            map_5643e69ab1ab5cdab03ed91781a9a6fd.fitBounds(
-                [[18.504823, 74.516498], [18.507295, 74.519759]],
+            map_3454f24b07667d2afe263f89dcb1b6ba.fitBounds(
+                [[18.656366, 73.92102], [18.657708, 73.923031]],
                 {}
             );
         
     
-            var image_overlay_2c10bbf55515dbbe29eadd718b9beaed = L.imageOverlay(
-                "data:image/png;base64,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",
-                [[18.504823, 74.516498], [18.507295, 74.519759]],
+        function geo_json_14f5533e67b75b50b42ce409f3f0d896_styler(feature) {
+            switch(feature.id) {
+                default:
+                    return {"color": "red", "fillColor": "none", "weight": 2};
+            }
+        }
+
+        function geo_json_14f5533e67b75b50b42ce409f3f0d896_onEachFeature(feature, layer) {
+            layer.on({
+            });
+        };
+        var geo_json_14f5533e67b75b50b42ce409f3f0d896 = L.geoJson(null, {
+                onEachFeature: geo_json_14f5533e67b75b50b42ce409f3f0d896_onEachFeature,
+            
+                style: geo_json_14f5533e67b75b50b42ce409f3f0d896_styler,
+            ...{
+}
+        });
+
+        function geo_json_14f5533e67b75b50b42ce409f3f0d896_add (data) {
+            geo_json_14f5533e67b75b50b42ce409f3f0d896
+                .addData(data);
+        }
+            geo_json_14f5533e67b75b50b42ce409f3f0d896_add({"features": [{"geometry": {"coordinates": [[[73.921293, 18.657708], [73.92102, 18.656889], [73.922709, 18.656366], [73.923031, 18.657286], [73.921293, 18.657708]]], "type": "Polygon"}, "id": "0", "properties": {}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+            geo_json_14f5533e67b75b50b42ce409f3f0d896.addTo(map_3454f24b07667d2afe263f89dcb1b6ba);
+        
+    
+            var image_overlay_147d7e1d78ce23cc13c49052cd43625f = L.imageOverlay(
+                "data:image/png;base64,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",
+                [[18.656366, 73.92102], [18.657708, 73.923031]],
                 {
   "opacity": 0.7,
   "interactive": true,
@@ -250,51 +201,28 @@
             );
         
     
-            image_overlay_2c10bbf55515dbbe29eadd718b9beaed.addTo(map_5643e69ab1ab5cdab03ed91781a9a6fd);
+            image_overlay_147d7e1d78ce23cc13c49052cd43625f.addTo(map_3454f24b07667d2afe263f89dcb1b6ba);
         
     
-            var layer_control_d946aaa0184ecb5b00608a4ce1806a01_layers = {
+            var layer_control_df55190592a955d152c46423d59f4de6_layers = {
                 base_layers : {
-                    "https://mt1.google.com/vt/lyrs=y\u0026x={x}\u0026y={y}\u0026z={z}" : tile_layer_5288d51eff0b4f4ada203bfff685a566,
+                    "https://mt1.google.com/vt/lyrs=y\u0026x={x}\u0026y={y}\u0026z={z}" : tile_layer_b5c07bed9332f88c2445a5b254c395d6,
                 },
                 overlays :  {
-                    "NDVI Layer" : image_overlay_2c10bbf55515dbbe29eadd718b9beaed,
+                    "Selection Area" : geo_json_14f5533e67b75b50b42ce409f3f0d896,
+                    "NDVI Layer" : image_overlay_147d7e1d78ce23cc13c49052cd43625f,
                 },
             };
-            let layer_control_d946aaa0184ecb5b00608a4ce1806a01 = L.control.layers(
-                layer_control_d946aaa0184ecb5b00608a4ce1806a01_layers.base_layers,
-                layer_control_d946aaa0184ecb5b00608a4ce1806a01_layers.overlays,
+            let layer_control_df55190592a955d152c46423d59f4de6 = L.control.layers(
+                layer_control_df55190592a955d152c46423d59f4de6_layers.base_layers,
+                layer_control_df55190592a955d152c46423d59f4de6_layers.overlays,
                 {
   "position": "topright",
   "collapsed": true,
   "autoZIndex": true,
 }
-            ).addTo(map_5643e69ab1ab5cdab03ed91781a9a6fd);
+            ).addTo(map_3454f24b07667d2afe263f89dcb1b6ba);
 
         
 </script>
-
-<script>
-    // Geocoder initialization - runs after the map script above
-    (function() {
-        var mapId = "map_5643e69ab1ab5cdab03ed91781a9a6fd";
-        var checkMap = setInterval(function() {
-            if (window[mapId]) {
-                clearInterval(checkMap);
-                var theMap = window[mapId];
-                L.Control.geocoder({
-                    defaultMarkGeocode: false,
-                    position: 'topright',
-                    placeholder: 'Search city or place...',
-                    collapsed: false,
-                }).on('markgeocode', function(e) {
-                    var bbox = e.geocode.bbox;
-                    theMap.fitBounds(bbox);
-                    L.marker(e.geocode.center).addTo(theMap).bindPopup(e.geocode.name).openPopup();
-                }).addTo(theMap);
-            }
-        }, 100);
-    })();
-</script>
-</body>
 </html>
