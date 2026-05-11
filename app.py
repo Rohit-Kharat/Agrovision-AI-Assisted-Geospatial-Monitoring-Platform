@@ -7,6 +7,8 @@ from rasterio.warp import transform_bounds
 from rasterio.crs import CRS
 import os
 import glob
+import subprocess
+import threading
 from dotenv import load_dotenv
 from datetime import timedelta
 
@@ -139,6 +141,44 @@ def smi_bounds():
         return jsonify({"error": "SAR data not found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+# ── Pipeline state ────────────────────────────────────────────────────────────
+_pipeline_state = {"status": "idle", "message": ""}
+
+def _run_pipeline_bg():
+    """Run integrated_pipeline.py in a background thread."""
+    global _pipeline_state
+    _pipeline_state = {"status": "running", "message": "Pipeline started…"}
+    try:
+        result = subprocess.run(
+            ["python", "integrated_pipeline.py"],
+            capture_output=True, text=True,
+            cwd=os.path.dirname(os.path.abspath(__file__))
+        )
+        if result.returncode == 0:
+            _pipeline_state = {"status": "complete", "message": "Pipeline finished successfully! ✅"}
+        else:
+            _pipeline_state = {"status": "error",
+                               "message": f"Pipeline failed: {result.stderr[-400:] if result.stderr else 'unknown error'}"}
+    except Exception as e:
+        _pipeline_state = {"status": "error", "message": str(e)}
+
+@app.route("/run_pipeline", methods=["POST"])
+@login_required
+def run_pipeline():
+    """Kick off the integrated pipeline in a background thread."""
+    global _pipeline_state
+    if _pipeline_state["status"] == "running":
+        return jsonify({"status": "running", "message": "Pipeline is already running."}), 409
+    t = threading.Thread(target=_run_pipeline_bg, daemon=True)
+    t.start()
+    return jsonify({"status": "running", "message": "Pipeline started!"})
+
+@app.route("/pipeline_status")
+@login_required
+def pipeline_status():
+    """Return the current pipeline status."""
+    return jsonify(_pipeline_state)
 
 if __name__ == "__main__":
     app.run(debug=True)

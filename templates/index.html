@@ -49,7 +49,7 @@
         }
         .navbar-links .btn-logout:hover { background: #dc3545; }
 
-        #map { height: calc(100vh - 110px); width: 100%; }
+        #map { height: calc(100vh - 150px); width: 100%; }
         
         #status {
             padding: 10px 24px;
@@ -57,7 +57,54 @@
             border-top: 1px solid #dee2e6;
             font-size: 13px;
             color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
         }
+
+        /* ── Run Pipeline button ── */
+        #run-pipeline-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 20px;
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0,114,255,0.4);
+            transition: opacity 0.2s, transform 0.15s;
+            white-space: nowrap;
+        }
+        #run-pipeline-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+        #run-pipeline-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        /* Spinner */
+        .spinner {
+            width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Pipeline status banner */
+        #pipeline-status {
+            font-size: 13px;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+            display: none;
+        }
+        #pipeline-status.running  { background: #fff3cd; color: #856404; display: block; }
+        #pipeline-status.complete { background: #d1e7dd; color: #0a3622; display: block; }
+        #pipeline-status.error    { background: #f8d7da; color: #58151c; display: block; }
     </style>
 </head>
 <body>
@@ -71,7 +118,16 @@
     </nav>
     
     <div id="map"></div>
-    <div id="status">Loading overlays...</div>
+    <div id="status">
+        <span id="layer-status">Loading overlays…</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span id="pipeline-status"></span>
+            <button id="run-pipeline-btn" onclick="runPipeline()">
+                <span class="spinner" id="btn-spinner"></span>
+                ▶️ Run Pipeline
+            </button>
+        </div>
+    </div>
 
     <script>
         var map = L.map('map').setView([30, 70], 6);
@@ -135,18 +191,81 @@
                 });
         }
 
-        // Update status display
+        // Update layer status display
         function updateStatus() {
-            var statusText = "Available layers: ";
             var layers = [];
             if (overlays.ndvi) layers.push("NDVI");
             if (overlays.smi) layers.push("SMI");
+            var layerStatus = document.getElementById('layer-status');
             if (layers.length === 0) {
-                statusText = "No satellite data available. Please run the processing pipeline first.";
+                layerStatus.textContent = "No satellite data available. Run the pipeline to generate overlays.";
             } else {
-                statusText = "Available layers: " + layers.join(", ") + ". Use layer control (top right) to toggle visibility.";
+                layerStatus.textContent = "Available layers: " + layers.join(", ") + ". Use layer control (top right) to toggle.";
             }
-            document.getElementById('status').textContent = statusText;
+        }
+
+        // ── Pipeline button logic ─────────────────────────────────
+        var _pollTimer = null;
+
+        function runPipeline() {
+            var btn     = document.getElementById('run-pipeline-btn');
+            var spinner = document.getElementById('btn-spinner');
+            var banner  = document.getElementById('pipeline-status');
+
+            btn.disabled = true;
+            spinner.style.display = 'block';
+            setBanner('running', '⏳ Pipeline is running… please wait.');
+
+            fetch('/run_pipeline', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'running') {
+                        startPolling();
+                    } else {
+                        setBanner('error', data.message);
+                        resetBtn();
+                    }
+                })
+                .catch(err => {
+                    setBanner('error', 'Request failed: ' + err);
+                    resetBtn();
+                });
+        }
+
+        function startPolling() {
+            _pollTimer = setInterval(() => {
+                fetch('/pipeline_status')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.status === 'complete') {
+                            clearInterval(_pollTimer);
+                            setBanner('complete', data.message);
+                            resetBtn();
+                            // Reload overlays now that new data is ready
+                            addNDVIOverlay();
+                            addSMIOverlay();
+                        } else if (data.status === 'error') {
+                            clearInterval(_pollTimer);
+                            setBanner('error', data.message);
+                            resetBtn();
+                        }
+                        // else still 'running' — keep polling
+                    })
+                    .catch(() => { /* ignore transient network errors */ });
+            }, 3000);
+        }
+
+        function setBanner(cls, msg) {
+            var banner = document.getElementById('pipeline-status');
+            banner.className = cls;
+            banner.textContent = msg;
+        }
+
+        function resetBtn() {
+            var btn     = document.getElementById('run-pipeline-btn');
+            var spinner = document.getElementById('btn-spinner');
+            btn.disabled = false;
+            spinner.style.display = 'none';
         }
 
         // Load overlays on page load
